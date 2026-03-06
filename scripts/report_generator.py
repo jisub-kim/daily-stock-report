@@ -275,7 +275,7 @@ def _build_stock_table(title, stocks):
             rsi_color = 'color:#2196F3'
 
         html += f"""<tr>
-  <td><strong>{s['name']}</strong><br><span style="color:#999;font-size:11px">{s['ticker']}</span></td>
+  <td><a href="https://finance.yahoo.com/chart/{s['ticker']}" style="color:#1a1a2e;text-decoration:none;font-weight:bold">{s['name']}</a><br><span style="color:#999;font-size:11px">{s['ticker']}</span></td>
   <td>{format_price(s['price'], s['currency'])}</td>
   <td>{format_change(s['change_pct'])}</td>
   <td style="{rsi_color}">{s['rsi_14'] or '-'}</td>

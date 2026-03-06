@@ -34,6 +34,16 @@
     {"name": "Castor Maritime", "ticker": "CTRM", "market": "US"},
     {"name": "두산에너빌리티", "ticker": "034020.KS", "market": "KRX"},
     {"name": "삼성SDI", "ticker": "006400.KS", "market": "KRX"},
-    {"name": "LG에너지솔루션", "ticker": "373220.KS", "market": "KRX"}
+    {"name": "LG에너지솔루션", "ticker": "373220.KS", "market": "KRX"},
+    {"name": "한화시스템", "ticker": "272210.KS", "market": "KRX"},
+    {"name": "삼성바이오로직스", "ticker": "207940.KS", "market": "KRX"},
+    {"name": "하이브", "ticker": "352820.KS", "market": "KRX"},
+    {"name": "아틀라시안", "ticker": "TEAM", "market": "US"},
+    {"name": "리게티 컴퓨팅", "ticker": "RGTI", "market": "US"},
+    {"name": "디 웨이브 퀀텀", "ticker": "QBTS", "market": "US"},
+    {"name": "넥스젠 에너지", "ticker": "NXE", "market": "US"},
+    {"name": "알파벳 C", "ticker": "GOOG", "market": "US"},
+    {"name": "펩시코", "ticker": "PEP", "market": "US"},
+    {"name": "AMD", "ticker": "AMD", "market": "US"}
   ]
 }
