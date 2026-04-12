@@ -15,12 +15,12 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-# FALLBACK_TICKERS: predict_batch에서 우선 처리할 종목
-FALLBACK_TICKERS: set[str] = {
+# FALLBACK_TICKERS: predict_batch에서 우선 처리할 종목 (KRX 10 → US 5 순서)
+FALLBACK_TICKERS: list[str] = [
     "005930.KS", "000660.KS", "005380.KS", "051910.KS", "373220.KS",
     "006400.KS", "035420.KS", "035720.KS", "017670.KS", "259960.KS",
     "NVDA", "AAPL", "MSFT", "GOOGL", "TSLA",
-}
+]
 
 
 # ---------------------------------------------------------------------------
@@ -326,7 +326,7 @@ def generate_ai_forecast_section(
         horizons=[1, 5],
         n_samples=5,
         timeout_seconds=float(timeout_seconds),
-        fallback_tickers=list(FALLBACK_TICKERS),
+        fallback_tickers=set(FALLBACK_TICKERS),
     )
 
     return build_forecast_html(forecasts, sorted_watchlist)

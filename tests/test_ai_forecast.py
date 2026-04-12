@@ -52,6 +52,23 @@ class TestFormatPrice:
 
 
 # ---------------------------------------------------------------------------
+# Test 1.5: _format_range
+# ---------------------------------------------------------------------------
+
+class TestFormatRange:
+    def test_krw_range(self):
+        result = _format_range(58000.0, 59000.0, "KRW")
+        assert "58,000" in result
+        assert "59,000" in result
+
+    def test_usd_range(self):
+        result = _format_range(170.0, 180.0, "USD")
+        assert "$" in result
+        assert "170" in result
+        assert "180" in result
+
+
+# ---------------------------------------------------------------------------
 # Test 2: _direction_icon
 # ---------------------------------------------------------------------------
 
