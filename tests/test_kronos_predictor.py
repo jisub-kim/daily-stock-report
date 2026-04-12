@@ -4,6 +4,7 @@ KronosPredictor 래퍼 단위 테스트.
 """
 import sys
 import os
+import time
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
@@ -189,35 +190,83 @@ class TestPredictBatchTimeout:
         predictor = KronosPredictor.__new__(KronosPredictor)
         predictor._available = True
 
-        process_order = []
+        # 각 DataFrame에 고유 식별자를 심어 호출 순서 추적
+        dfs = {}
+        for ticker in ["AAPL", "MSFT", "GOOGL"]:
+            df = _make_yfinance_df(100)
+            df.attrs["_ticker"] = ticker  # DataFrame에 식별자 부착
+            dfs[ticker] = df
+
+        process_order: list[str] = []
 
         def mock_predict(df, horizons, n_samples):
-            # predict_batch 내부에서 ticker별로 호출될 때 순서 기록
+            process_order.append(df.attrs["_ticker"])
             return {
                 1: {"median": 101.0, "p10": 99.0, "p90": 103.0, "direction_prob": 0.6, "volatility": 0.02},
             }
 
         predictor.predict = MagicMock(side_effect=mock_predict)
 
-        tickers_data = {
-            "AAPL": _make_yfinance_df(100),
-            "MSFT": _make_yfinance_df(100),
-            "GOOGL": _make_yfinance_df(100),
-        }
         fallback_tickers = ["GOOGL"]
 
-        # predict_batch가 호출 순서를 내부적으로 fallback 우선 보장하는지 확인
-        # (call_args_list로 순서 확인 불가 → 결과 존재 여부로 대체 확인)
         results = predictor.predict_batch(
-            tickers_data=tickers_data,
+            tickers_data=dfs,
             horizons=[1],
             n_samples=1,
             timeout_seconds=600,
             fallback_tickers=fallback_tickers,
         )
 
-        # fallback ticker인 GOOGL도 결과에 포함되어야 함
-        assert "GOOGL" in results, "fallback ticker GOOGL이 결과에 없음"
+        # fallback ticker인 GOOGL이 첫 번째로 처리되어야 함
+        assert process_order[0] == "GOOGL", (
+            f"fallback 종목 GOOGL이 첫 번째로 처리되지 않음. 실제 순서: {process_order}"
+        )
+        assert set(results.keys()) == {"AAPL", "MSFT", "GOOGL"}
+
+    def test_predict_batch_timeout_skips_remaining(self):
+        """타임아웃 시 미처리 종목이 None으로 결과에 포함되는지 검증."""
+        from libs.kronos_predictor import KronosPredictor
+
+        predictor = KronosPredictor.__new__(KronosPredictor)
+        predictor._available = True
+
+        process_order: list[str] = []
+
+        def slow_predict(df, horizons, n_samples):
+            process_order.append(df.attrs["_ticker"])
+            time.sleep(0.5)  # 각 종목 0.5초 소요
+            return {
+                1: {"median": 101.0, "p10": 99.0, "p90": 103.0, "direction_prob": 0.6, "volatility": 0.02},
+            }
+
+        predictor.predict = MagicMock(side_effect=slow_predict)
+
+        # 6개 종목: timeout=1초, TIMEOUT_RATIO=0.70 → deadline=0.7초
+        # 0.5초/종목이므로 1~2개만 처리 가능
+        dfs = {}
+        for ticker in ["T1", "T2", "T3", "T4", "T5", "T6"]:
+            df = _make_yfinance_df(100)
+            df.attrs["_ticker"] = ticker
+            dfs[ticker] = df
+
+        results = predictor.predict_batch(
+            tickers_data=dfs,
+            horizons=[1],
+            n_samples=1,
+            timeout_seconds=1.0,
+            fallback_tickers=["T1"],
+        )
+
+        # 모든 종목이 결과에 포함되어야 함 (스킵된 종목도 None으로)
+        assert set(results.keys()) == {"T1", "T2", "T3", "T4", "T5", "T6"}, (
+            f"결과 키 누락: {set(dfs.keys()) - set(results.keys())}"
+        )
+
+        # 일부 종목은 None이어야 함 (타임아웃으로 스킵)
+        none_count = sum(1 for v in results.values() if v is None)
+        processed_count = sum(1 for v in results.values() if v is not None)
+        assert none_count > 0, "타임아웃에 의해 스킵된 종목이 없음 — timeout이 작동하지 않음"
+        assert processed_count > 0, "처리된 종목이 없음 — fallback 종목도 처리 안됨"
 
 
 # ---------------------------------------------------------------------------
