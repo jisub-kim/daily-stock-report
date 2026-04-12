@@ -10,6 +10,7 @@ from gem_scanner import scan_gems
 from market_overview import get_market_indices, get_exchange_rates, get_vix, get_sector_performance
 from extras import check_52week_alerts, get_weekly_performance, get_earnings_calendar
 from sort_utils import sort_by_market_and_cap, fetch_market_caps
+from ai_forecast import generate_ai_forecast_section
 
 
 SIGNAL_KR = {
@@ -84,6 +85,16 @@ def generate_html(watchlist_path):
 
     krx_stocks = [r for r in results if r['market'] == 'KRX']
     us_stocks = [r for r in results if r['market'] == 'US']
+
+    # 2.5. AI 예측 (Kronos)
+    print("=== AI Forecast ===", file=sys.stderr)
+    try:
+        ai_forecast_html = generate_ai_forecast_section(
+            results, ticker_info_cache, timeout_seconds=600
+        )
+    except Exception as e:
+        print(f"AI 예측 섹션 생성 실패: {e}", file=sys.stderr)
+        ai_forecast_html = ""
 
     # 3. 추가 분석
     print("=== Extras ===", file=sys.stderr)
@@ -246,6 +257,10 @@ def generate_html(watchlist_path):
         html += '<div class="section">'
         html += _build_stock_table("US Equities", "US", us_stocks)
         html += '</div>'
+
+    # === AI 예측 (Kronos) ===
+    if ai_forecast_html:
+        html += ai_forecast_html
 
     # === 숨겨진 종목 추천 ===
     html += '<div class="section">'
