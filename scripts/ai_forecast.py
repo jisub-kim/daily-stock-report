@@ -59,19 +59,19 @@ def _format_range(p10: float, p90: float, currency: str) -> str:
 
 
 def _direction_icon(prob: float) -> str:
-    """상승 확률에 따른 방향 아이콘 반환.
+    """상승 확률에 따른 방향 아이콘 반환 (이메일 호환 인라인 HTML).
 
     Args:
         prob: 상승 확률 (0.0~1.0)
 
     Returns:
-        "🔼" (≥0.55), "🔽" (≤0.45), "➡️" (그 외)
+        인라인 HTML 화살표. 상승(빨강 ▲), 하락(파랑 ▼), 보합(회색 ▶).
     """
     if prob >= 0.55:
-        return "🔼"
+        return '<span style="color:#DC2626;font-size:15px;font-weight:700">&#9650;</span>'
     elif prob <= 0.45:
-        return "🔽"
-    return "➡️"
+        return '<span style="color:#2563EB;font-size:15px;font-weight:700">&#9660;</span>'
+    return '<span style="color:#9B8E7E;font-size:13px">&#9654;</span>'
 
 
 def _volatility_label(vol: float) -> str:
@@ -173,7 +173,7 @@ def build_forecast_html(
                 f'<span style="color:#9B8E7E;font-size:10px">{ticker}</span></td>'
                 f'<td style="{td_style}">{_format_price(current_price, currency)}</td>'
                 f'<td style="{td_style}">{price_range}</td>'
-                f'<td style="{td_style}font-size:16px">{direction}</td>'
+                f'<td style="{td_style}text-align:center">{direction}</td>'
                 f'<td style="{td_style}">{prob_pct}</td>'
                 f'</tr>'
             )
@@ -219,7 +219,7 @@ def build_forecast_html(
                 f'<span style="color:#9B8E7E;font-size:10px">{ticker}</span></td>'
                 f'<td style="{td_style}">{_format_price(current_price, currency)}</td>'
                 f'<td style="{td_style}">{price_range}</td>'
-                f'<td style="{td_style}font-size:16px">{direction}</td>'
+                f'<td style="{td_style}text-align:center">{direction}</td>'
                 f'<td style="{td_style}">{vol_label}</td>'
                 f'</tr>'
             )
